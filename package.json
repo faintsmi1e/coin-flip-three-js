@@ -1,5 +1,6 @@
 {
   "name": "three-coin-flip",
+  "homepage": "https://faintsmi1e.github.io/coin-flip-three-js/",
   "private": true,
   "version": "0.0.0",
   "scripts": {
@@ -9,6 +10,7 @@
     "deploy": "node ./gh-pages.js"
   },
   "devDependencies": {
+    "gh-pages": "^6.1.1",
     "vite": "^2.8.0"
   },
   "dependencies": {
