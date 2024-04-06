@@ -18,8 +18,15 @@ camera.position.setZ(20);
 const renderer = new THREE.WebGLRenderer({
   canvas: document.querySelector('#app'),
 });
-renderer.setPixelRatio(window.devicePixelRatio);
+//renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
+
+function onWindowResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+window.addEventListener('resize', onWindowResize, false);
 
 /*
  * Lighting
@@ -145,9 +152,80 @@ function onMouseDown(event) {
   if (rand < 0.05) onMouseClick(event);
 }
 
+function onTouchStart(event) {
+  event.preventDefault();
+  if (event.touches) {
+    mouse.x = (event.touches[0].clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.touches[0].clientY / window.innerHeight) * 2 + 1;
+  } else {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  }
+  raycaster.setFromCamera(mouse, camera);
+
+  rotationAxis.set(-mouse.y, 0, -mouse.x).normalize();
+  const targetQuaternion = coin.quaternion
+    .clone()
+    .multiply(
+      new THREE.Quaternion().setFromAxisAngle(rotationAxis, rotationAngle)
+    );
+  console.log(
+    coin.quaternion.x,
+    coin.quaternion.y,
+    coin.quaternion.y,
+    coin.quaternion.w
+  );
+  gsap.to(coin.quaternion, {
+    x: targetQuaternion.x,
+    y: targetQuaternion.y,
+    z: targetQuaternion.z,
+    w: targetQuaternion.w,
+    duration: duration,
+    onUpdate: () => {
+      coin.quaternion.normalize();
+    },
+  });
+  const rand = Math.random();
+  if (rand < 0.05) onMouseClick(event);
+}
+
+function onTouchEnd(event) {
+  event.preventDefault();
+  console.log('touchend', event, event.touches)
+  if (event.touches.length) {
+    mouse.x = (event.touches[0].clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.touches[0].clientY / window.innerHeight) * 2 + 1;
+  } else {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  }
+  raycaster.setFromCamera(mouse, camera);
+
+  rotationAxis.set(-mouse.y, 0, -mouse.x).normalize();
+  const targetQuaternion = coin.quaternion
+    .clone()
+    .multiply(
+      new THREE.Quaternion().setFromAxisAngle(rotationAxis, rotationAngle)
+    );
+  console.log(targetQuaternion.w);
+
+  gsap.to(coin.quaternion, {
+    x: Math.PI / 2,
+    y: 0,
+    z: 0,
+    w: Math.PI / 2,
+    duration: duration,
+    onUpdate: () => {
+      coin.quaternion.normalize();
+    },
+  });
+}
+
 //renderer.domElement.addEventListener('click', onMouseClick);
 renderer.domElement.addEventListener('mousedown', onMouseDown);
 renderer.domElement.addEventListener('mouseup', onMouseUp);
+renderer.domElement.addEventListener('touchstart', onTouchStart);
+renderer.domElement.addEventListener('touchend', onTouchEnd);
 
 /*
  * Animation Logic
