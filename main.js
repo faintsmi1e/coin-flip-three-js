@@ -47,7 +47,7 @@ const rotationAngle = Math.PI / 8;
  */
 let isAnimating = false;
 let animationTime = 0;
-const animationDuration = 3000; // Duration of the animation in milliseconds
+const animationDuration = 1000; // Duration of the animation in milliseconds
 const duration = 0.2;
 /*
  * Raycaster for Mouse Interaction
@@ -142,7 +142,7 @@ function onMouseDown(event) {
   });
 
   const rand = Math.random();
-  if (rand < 0.1) onMouseClick(event);
+  if (rand < 0.05) onMouseClick(event);
 }
 
 //renderer.domElement.addEventListener('click', onMouseClick);
