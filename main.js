@@ -1,7 +1,7 @@
 import './style.css';
 import * as THREE from 'three';
 import gsap from 'gsap';
-import { createExtrudeShape, getImageData } from './test';
+import { adjustUVsForCaps, createExtrudeShape, getImageData } from './test';
 
 /*
  * Setup
@@ -39,8 +39,9 @@ scene.add(ambientLight);
  * Coin Setup
  */
 const textureLoader = new THREE.TextureLoader();
-const coinTexture = textureLoader.load('./p.jpg'); // Ensure you have an image at this path
-const coinMaterial = new THREE.MeshLambertMaterial({ map: coinTexture });
+const coinTexture = textureLoader.load('./a.png'); // Ensure you have an image at this path
+coinTexture.repeat.set(0.08, 0.08);
+coinTexture.offset.set(0.5, 0.5);
 const imageData = await getImageData('/a.png');
 
 const shape = createExtrudeShape(imageData);
@@ -52,9 +53,23 @@ const extrudeSettings = {
 };
 
 const shapeGeometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+
+adjustUVsForCaps(shapeGeometry, coinTexture);
+const coinMaterial = new THREE.MeshBasicMaterial({
+  map: coinTexture,
+  transparent: true,
+  side: THREE.DoubleSide,
+});
 const coinGeometry = new THREE.CylinderGeometry(3, 3, 0.5, 20, 20, false);
-const coin = new THREE.Mesh(coinGeometry, coinMaterial);
-coin.rotation.x = 0;
+const coin = new THREE.Mesh(shapeGeometry, coinMaterial);
+
+const basePosition = {
+  x: 0,
+  y: 0,
+  z: 0,
+  w: Math.PI,
+};
+coin.rotation.x = basePosition.x;
 coin.rotation.y = 0;
 coin.rotation.z = 0;
 scene.add(coin);
@@ -121,10 +136,7 @@ function onMouseUp(event) {
   console.log(targetQuaternion.w);
 
   gsap.to(coin.quaternion, {
-    x: 0,
-    y: 0,
-    z: 0,
-    w: 0,
+    ...basePosition,
     duration: duration,
     onUpdate: () => {
       coin.quaternion.normalize();
@@ -165,7 +177,7 @@ function onMouseDown(event) {
   });
 
   const rand = Math.random();
-  if (rand < 0.03) onMouseClick(event);
+  if (rand < 0.3) onMouseClick(event);
 }
 
 function onTouchStart(event) {
@@ -226,10 +238,7 @@ function onTouchEnd(event) {
   console.log(targetQuaternion.w);
 
   gsap.to(coin.quaternion, {
-    x: 0,
-    y: 0,
-    z: 0,
-    w: 0,
+    ...basePosition,
     duration: duration,
     onUpdate: () => {
       coin.quaternion.normalize();
@@ -263,7 +272,7 @@ function animate() {
 
     if (animationTime >= animationDuration) {
       isAnimating = false;
-      coin.rotation.set(0, 0, 0); // Reset to start position
+      coin.rotation.set(basePosition.x, 0, 0); // Reset to start position
     }
 
     animationTime += 16.67; // Increment time by approx. one frame duration

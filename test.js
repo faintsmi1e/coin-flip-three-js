@@ -1,6 +1,25 @@
 import './style.css';
 import * as THREE from 'three';
 
+export function adjustUVsForCaps(geometry, texture) {
+  geometry.computeBoundingBox();
+  const uvAttribute = geometry.attributes.uv;
+  console.log('uc', uvAttribute);
+  console.log('bb', geometry.boundingBox);
+  for (let i = 0; i < uvAttribute.count; i++) {
+    const vertex = geometry.attributes.position.getX(i);
+    console.log('vertex', vertex);
+    const u =
+      (vertex.x - geometry.boundingBox.min.x) /
+      (geometry.boundingBox.max.x - geometry.boundingBox.min.x);
+    const v =
+      (vertex.y - geometry.boundingBox.min.y) /
+      (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
+    //geometry.attributes.position.setXY(i, 0.6, 0.6);
+  }
+  uvAttribute.needsUpdate = true;
+}
+
 export function getImageData(imagePath) {
   return new Promise((resolve, reject) => {
     const image = new Image();
@@ -91,10 +110,7 @@ function extractOutlinePoints(imageData, threshold = 0) {
   return removeEveryNthElementInPlace(
     removeEveryNthElementInPlace(
       removeEveryNthElementInPlace(
-        removeEveryNthElementInPlace(
-          removeEveryNthElementInPlace(removeEveryNthElementInPlace(res, 2), 2),
-          2
-        ),
+        removeEveryNthElementInPlace(removeEveryNthElementInPlace(res, 2), 2),
         2
       ),
       2
@@ -102,7 +118,7 @@ function extractOutlinePoints(imageData, threshold = 0) {
     2
   );
 }
-
+  
 export function createExtrudeShape(imageData) {
   const outlinePoints = extractOutlinePoints(imageData);
   console.log('length', outlinePoints.length);
