@@ -91,7 +91,10 @@ function extractOutlinePoints(imageData, threshold = 0) {
   return removeEveryNthElementInPlace(
     removeEveryNthElementInPlace(
       removeEveryNthElementInPlace(
-        removeEveryNthElementInPlace(removeEveryNthElementInPlace(res, 2), 2),
+        removeEveryNthElementInPlace(
+          removeEveryNthElementInPlace(removeEveryNthElementInPlace(res, 2), 2),
+          2
+        ),
         2
       ),
       2
