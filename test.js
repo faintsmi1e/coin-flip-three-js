@@ -25,12 +25,12 @@ export function getImageData(imagePath) {
     const image = new Image();
     image.onload = () => {
       const canvas = document.createElement('canvas');
-      canvas.width = 600;
-      canvas.height = 600;
+      canvas.width = image.width;
+      canvas.height = image.height;
       const context = canvas.getContext('2d');
       console.log(canvas.width, canvas.height, image.width);
       context.drawImage(image, 0, 0);
-      const imageData = context.getImageData(0, 0, 600, 600);
+      const imageData = context.getImageData(0, 0, image.width, image.height);
       resolve(imageData);
     };
     image.onerror = (e) => {
@@ -79,14 +79,22 @@ function removeEveryNthElementInPlace(arr, n) {
   return arr;
 }
 
-function extractOutlinePoints(imageData, threshold = 0) {
+function removeElementsWithDepth(arr, depth = 2) {
+  let result = [...arr];
+  for (let i = 0; i < depth; i++) {
+    result = removeEveryNthElementInPlace(result, 2);
+  }
+  return result;
+}
+
+function extractOutlinePoints(imageData, threshold = 10) {
   const points = [];
   const spacing = 1;
   const isEdgePixel = (x, y, width, data) => {
     const alpha = data[(x + y * width) * 4 + 3];
     return alpha > threshold;
   };
-  //console.log(imageData.data);
+  console.log(imageData);
   // Scan for edge pixels
   for (let y = 0; y < imageData.height; y += spacing) {
     for (let x = 0; x < imageData.width; x += spacing) {
@@ -107,16 +115,8 @@ function extractOutlinePoints(imageData, threshold = 0) {
     }
   }
   const res = sortAndRemoveOutliers(points, 10);
-  return removeEveryNthElementInPlace(
-    removeEveryNthElementInPlace(
-      removeEveryNthElementInPlace(
-        removeEveryNthElementInPlace(removeEveryNthElementInPlace(res, 2), 2),
-        2
-      ),
-      2
-    ),
-    2
-  );
+  return res
+  //return removeElementsWithDepth(res, 2);
 }
 
 export function createExtrudeShape(imageData) {

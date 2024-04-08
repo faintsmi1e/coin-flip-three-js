@@ -19,6 +19,7 @@ import { adjustUVsForCaps, createExtrudeShape, getImageData } from './test';
   camera.position.setZ(20);
 
   const renderer = new THREE.WebGLRenderer({
+    antialias: true,
     canvas: document.querySelector('#app'),
   });
   //renderer.setPixelRatio(window.devicePixelRatio);
@@ -41,30 +42,58 @@ import { adjustUVsForCaps, createExtrudeShape, getImageData } from './test';
    * Coin Setup
    */
   const textureLoader = new THREE.TextureLoader();
-  const imagePath = './b.png';
+  const imagePath = './c.png';
   const coinTexture = textureLoader.load(imagePath); // Ensure you have an image at this path
-  coinTexture.repeat.set(0.09, 0.09);
-  coinTexture.offset.set(0.5, 0.5);
-  const imageData = await getImageData(imagePath);
+  coinTexture.repeat.set(0.0828, 0.0828);
+  coinTexture.offset.set(0.5, 0.499);
+  coinTexture.wrapS = THREE.RepeatWrapping;
+  coinTexture.wrapT = THREE.RepeatWrapping;
+  const imageData = await getImageData('./b.png');
 
   const shape = createExtrudeShape(imageData);
 
   const extrudeSettings = {
     steps: 1,
-    depth: 0.2, // Small depth for a flat appearance
-    bevelEnabled: false, // No bevel for a sharp-edged look
+    depth: 0.5, // Small depth for a flat appearance
+    //bevelEnabled: true,
+    // No bevel for a sharp-edged look,
+    bevelEnabled: true,
+    bevelSegments: 1,
+
+    bevelSize: 0.01,
+    bevelThickness: 0.1,
+    curveSegments: 60,
   };
 
   const shapeGeometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
 
-  adjustUVsForCaps(shapeGeometry, coinTexture);
+  //adjustUVsForCaps(shapeGeometry, coinTexture);
+  shapeGeometry.computeBoundingBox();
+
+  const vertices = shapeGeometry.attributes.position;
+  const uv = shapeGeometry.attributes.uv;
+  const depth = extrudeSettings.depth;
+
+  // for (let i = 0; i < vertices.count; i++) {
+  //   const z = vertices.getZ(i);
+  //   if (z === 0 || z === depth) {
+  //   } else {
+  //     // Assign a default or zero UV for side vertices
+  //     uv.setXY(i, 0, 0);
+  //   }
+  // }
+  uv.needsUpdate = true;
   const coinMaterial = new THREE.MeshBasicMaterial({
     map: coinTexture,
     transparent: true,
     side: THREE.DoubleSide,
   });
   const coinGeometry = new THREE.CylinderGeometry(3, 3, 0.5, 20, 20, false);
-  const coin = new THREE.Mesh(shapeGeometry, coinMaterial);
+  const planeGeometry = new THREE.PlaneGeometry(5, 5);
+  const coin = new THREE.Mesh(shapeGeometry, [
+    coinMaterial,
+    new THREE.MeshBasicMaterial({ color: 0x000000 }),
+  ]);
 
   const basePosition = {
     x: 0,
@@ -254,6 +283,7 @@ import { adjustUVsForCaps, createExtrudeShape, getImageData } from './test';
   renderer.domElement.addEventListener('mouseup', onMouseUp);
   renderer.domElement.addEventListener('touchstart', onTouchStart);
   renderer.domElement.addEventListener('touchend', onTouchEnd);
+  renderer.getContext().getExtension('EXT_color_buffer_float');
 
   /*
    * Animation Logic
