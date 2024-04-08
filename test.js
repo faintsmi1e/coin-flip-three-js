@@ -115,8 +115,8 @@ function extractOutlinePoints(imageData, threshold = 10) {
     }
   }
   const res = sortAndRemoveOutliers(points, 10);
-  return res
-  //return removeElementsWithDepth(res, 2);
+  //return res
+  return removeElementsWithDepth(res, 2);
 }
 
 export function createExtrudeShape(imageData) {

@@ -44,7 +44,7 @@ import { adjustUVsForCaps, createExtrudeShape, getImageData } from './test';
   const textureLoader = new THREE.TextureLoader();
   const imagePath = './c.png';
   const coinTexture = textureLoader.load(imagePath); // Ensure you have an image at this path
-  coinTexture.repeat.set(0.0828, 0.0828);
+  coinTexture.repeat.set(0.0835, 0.0835);
   coinTexture.offset.set(0.5, 0.499);
   coinTexture.wrapS = THREE.RepeatWrapping;
   coinTexture.wrapT = THREE.RepeatWrapping;
@@ -55,14 +55,14 @@ import { adjustUVsForCaps, createExtrudeShape, getImageData } from './test';
   const extrudeSettings = {
     steps: 1,
     depth: 0.5, // Small depth for a flat appearance
-    //bevelEnabled: true,
+    bevelEnabled: false,
     // No bevel for a sharp-edged look,
-    bevelEnabled: true,
-    bevelSegments: 1,
-
-    bevelSize: 0.01,
-    bevelThickness: 0.1,
-    curveSegments: 60,
+    // bevelEnabled: true,
+    // bevelSegments: 1,
+    // bevelSize: 0.02,
+    // bevelSegments: 3,
+    // bevelThickness: 0.1,
+    // curveSegments: 60,
   };
 
   const shapeGeometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
@@ -85,7 +85,6 @@ import { adjustUVsForCaps, createExtrudeShape, getImageData } from './test';
   uv.needsUpdate = true;
   const coinMaterial = new THREE.MeshBasicMaterial({
     map: coinTexture,
-    transparent: true,
     side: THREE.DoubleSide,
   });
   const coinGeometry = new THREE.CylinderGeometry(3, 3, 0.5, 20, 20, false);
