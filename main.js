@@ -39,16 +39,17 @@ scene.add(ambientLight);
  * Coin Setup
  */
 const textureLoader = new THREE.TextureLoader();
-const coinTexture = textureLoader.load('./a.png'); // Ensure you have an image at this path
-coinTexture.repeat.set(0.08, 0.08);
+const imagePath = './b.png'
+const coinTexture = textureLoader.load(imagePath); // Ensure you have an image at this path
+coinTexture.repeat.set(0.09, 0.09);
 coinTexture.offset.set(0.5, 0.5);
-const imageData = await getImageData('/a.png');
+const imageData = await getImageData(imagePath);
 
 const shape = createExtrudeShape(imageData);
 
 const extrudeSettings = {
   steps: 1,
-  depth: 1, // Small depth for a flat appearance
+  depth: 0.2, // Small depth for a flat appearance
   bevelEnabled: false, // No bevel for a sharp-edged look
 };
 
@@ -177,7 +178,7 @@ function onMouseDown(event) {
   });
 
   const rand = Math.random();
-  if (rand < 0.3) onMouseClick(event);
+  if (rand < 0.1) onMouseClick(event);
 }
 
 function onTouchStart(event) {

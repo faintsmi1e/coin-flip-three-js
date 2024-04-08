@@ -118,7 +118,7 @@ function extractOutlinePoints(imageData, threshold = 0) {
     2
   );
 }
-  
+
 export function createExtrudeShape(imageData) {
   const outlinePoints = extractOutlinePoints(imageData);
   console.log('length', outlinePoints.length);
@@ -168,41 +168,3 @@ export function createPointsFromImageData(imageData) {
   const zp = points3d.map((p) => ({ ...p, y: p.y + 2 }));
   return [...points3d, ...zp];
 }
-
-export async function createMesh(imagePath) {
-  const imageData = await getImageData(imagePath);
-  const points3d = createPointsFromImageData(imageData);
-  console.log(points3d.length);
-  const geometry = new THREE.BufferGeometry().setFromPoints(points3d);
-  console.log('Number of vertices:', points3d.length);
-  console.log('Buffer is:', geometry.attributes.position.array.length);
-  const textureLoader = new THREE.TextureLoader();
-  const coinTexture = textureLoader.load('./p.png');
-  const mesh = new THREE.Points(
-    geometry,
-    new THREE.PointsMaterial({
-      map: coinTexture,
-      alphaTest: 0.5,
-    })
-  );
-  scene.add(mesh);
-}
-
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(
-  75,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-);
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
-
-createMesh('./a.png');
-
-function animate() {
-  requestAnimationFrame(animate);
-  renderer.render(scene, camera);
-}
-animate();
