@@ -1,8 +1,7 @@
 import './style.css';
 import * as THREE from 'three';
-import { getImageData, createExtrudeShape } from './test';
-
 import gsap from 'gsap';
+import { createExtrudeShape, getImageData } from './test';
 
 /*
  * Setup
@@ -12,7 +11,7 @@ scene.background = new THREE.Color(0xffe8dc);
 const camera = new THREE.PerspectiveCamera(
   45,
   window.innerWidth / window.innerHeight,
-  0.1,
+  0.5,
   1000
 );
 camera.position.setZ(20);
@@ -42,77 +41,13 @@ scene.add(ambientLight);
 const textureLoader = new THREE.TextureLoader();
 const coinTexture = textureLoader.load('./p.jpg'); // Ensure you have an image at this path
 const coinMaterial = new THREE.MeshLambertMaterial({ map: coinTexture });
-// const coinGeometry = new THREE.CylinderGeometry(3, 3, 0.5, 20, 20, false);
-const imageData = await getImageData('./a.png');
-//const points3d = createPointsFromImageData(imageData);
-//console.log(points3d.length);
-//const geometry = new THREE.BufferGeometry();
+const imageData = getImageData('/a.png');
 
-const uvs = [];
-const bounds = {
-  minX: Infinity,
-  maxX: -Infinity,
-  minY: Infinity,
-  maxY: -Infinity,
-};
-
-// // First calculate bounds
-// points3d.forEach((point) => {
-//   if (point.x < bounds.minX) bounds.minX = point.x;
-//   if (point.x > bounds.maxX) bounds.maxX = point.x;
-//   if (point.z < bounds.minY) bounds.minY = point.z;
-//   if (point.z > bounds.maxY) bounds.maxY = point.z;
-// });
-
-// // Then map points to UV coordinates
-// points3d.forEach((point) => {
-//   const u = (point.x - bounds.minX) / (bounds.maxX - bounds.minX);
-//   const v = (point.z - bounds.minY) / (bounds.maxY - bounds.minY);
-//   uvs.push(u, v);
-// });
-
-// geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
 const shape = createExtrudeShape(imageData);
-//const coordinates = points3d.map((p) => [p.x, p.z]); // Assuming y is up and points lie on the xz-plane
 
-// Perform Delaunay triangulation
-// const delaunay = Delaunator.from(coordinates);
-// const indices = delaunay.triangles;
-
-// geometry.setFromPoints(points3d);
-// geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-
-// geometry.computeVertexNormals();
-// geometry.setAttribute(
-//   'position',
-//   new THREE.Float32BufferAttribute(
-//     points3d.flatMap((p) => [p.x, p.y, p.x]),
-//     2
-//   )
-// );
-
-//const geometry = new THREE.BoxGeometry();
-//console.log('Number of vertices:', points3d.length);
-//console.log('Buffer is:', geometry.attributes.position.array.length);
-
-const extrudeSettings = {
-  steps: 1,
-  depth: 1, // Small depth for a flat appearance
-  bevelEnabled: false, // No bevel for a sharp-edged look
-};
-
-const geometry2 = new THREE.ShapeGeometry(shape ,extrudeSettings);
-const geometry = new THREE.BoxGeometry();
-const material = new THREE.MeshStandardMaterial({
-  color: 0x00ff00,
-  wireframe: false,
-  side: THREE.DoubleSide,
-});
+const shapeGeometry = new THREE.ExtrudeGeometry(shape)
 const coinGeometry = new THREE.CylinderGeometry(3, 3, 0.5, 20, 20, false);
-//const coinGeometry1 = new THREE.Box2()
-const coin = new THREE.Mesh(coinGeometry, coinMaterial);
-
-//const coin = new THREE.Mesh(coinGeometry, coinMaterial);
+const coin = new THREE.Mesh(shapeGeometry, coinMaterial);
 coin.rotation.x = Math.PI / 2;
 coin.rotation.y = 0;
 coin.rotation.z = 0;
@@ -136,11 +71,10 @@ let rotationAxis = new THREE.Vector3();
 let x = 0;
 let y = 0;
 
-function onMouseClick(event, x, y) {
+function onMouseClick(event) {
   // Convert mouse position to normalized device coordinates (NDC)
-  console.log('click');
-  mouse.x = x || (event.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = y || -(event.clientY / window.innerHeight) * 2 + 1;
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
   // Update raycaster
   raycaster.setFromCamera(mouse, camera);
@@ -160,8 +94,8 @@ function onMouseUp(event) {
   // Convert mouse position to normalized device coordinates (NDC)
 
   if (isAnimating) return;
-  mouse.x = -0.06517902855734226;
-  mouse.y = -(-0.2987556832735656);
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
   // Update raycaster
   raycaster.setFromCamera(mouse, camera);
@@ -221,7 +155,7 @@ function onMouseDown(event) {
   });
 
   const rand = Math.random();
-  if (rand < 0.3) onMouseClick(event);
+  if (rand < 0.05) onMouseClick(event);
 }
 
 function onTouchStart(event) {
@@ -258,7 +192,7 @@ function onTouchStart(event) {
     },
   });
   const rand = Math.random();
-  if (rand < 0.4) onMouseClick(event, mouse.x, mouse.y);
+  if (rand < 0.05) onMouseClick(event);
 }
 
 function onTouchEnd(event) {
@@ -305,7 +239,7 @@ renderer.domElement.addEventListener('touchend', onTouchEnd);
 function animate() {
   requestAnimationFrame(animate);
   //const axis = new THREE.Vector3(0, 1, 0);
-  if (true) {
+  if (isAnimating) {
     const delta = Math.min(animationTime / animationDuration, 1); // Normalize delta
     //console.log('delta', delta);
     const dAngle = (2 * Math.PI) / (animationDuration / 16.67);
@@ -329,5 +263,3 @@ function animate() {
 }
 
 animate();
-
-renderer.render(scene, camera);
