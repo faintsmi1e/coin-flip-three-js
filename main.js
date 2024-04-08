@@ -1,6 +1,7 @@
 import './style.css';
 import * as THREE from 'three';
 import gsap from 'gsap';
+import { adjustUVsForCaps, createExtrudeShape, getImageData } from './test';
 
 /*
  * Setup
@@ -38,11 +39,38 @@ scene.add(ambientLight);
  * Coin Setup
  */
 const textureLoader = new THREE.TextureLoader();
-const coinTexture = textureLoader.load('./p.jpg'); // Ensure you have an image at this path
-const coinMaterial = new THREE.MeshLambertMaterial({ map: coinTexture });
+const imagePath = './b.png'
+const coinTexture = textureLoader.load(imagePath); // Ensure you have an image at this path
+coinTexture.repeat.set(0.09, 0.09);
+coinTexture.offset.set(0.5, 0.5);
+const imageData = await getImageData(imagePath);
+
+const shape = createExtrudeShape(imageData);
+
+const extrudeSettings = {
+  steps: 1,
+  depth: 0.2, // Small depth for a flat appearance
+  bevelEnabled: false, // No bevel for a sharp-edged look
+};
+
+const shapeGeometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+
+adjustUVsForCaps(shapeGeometry, coinTexture);
+const coinMaterial = new THREE.MeshBasicMaterial({
+  map: coinTexture,
+  transparent: true,
+  side: THREE.DoubleSide,
+});
 const coinGeometry = new THREE.CylinderGeometry(3, 3, 0.5, 20, 20, false);
-const coin = new THREE.Mesh(coinGeometry, coinMaterial);
-coin.rotation.x = Math.PI / 2;
+const coin = new THREE.Mesh(shapeGeometry, coinMaterial);
+
+const basePosition = {
+  x: 0,
+  y: 0,
+  z: 0,
+  w: Math.PI,
+};
+coin.rotation.x = basePosition.x;
 coin.rotation.y = 0;
 coin.rotation.z = 0;
 scene.add(coin);
@@ -65,6 +93,10 @@ let rotationAxis = new THREE.Vector3();
 let x = 0;
 let y = 0;
 
+function setRotationAxis(x, y, z) {
+  rotationAxis.set(-y, x, 0).normalize();
+}
+
 function onMouseClick(event) {
   // Convert mouse position to normalized device coordinates (NDC)
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -79,8 +111,8 @@ function onMouseClick(event) {
   if (intersects.length > 0) {
     isAnimating = true;
     animationTime = 0;
-    coin.rotation.set(Math.PI / 2, 0, 0); // Reset rotation before starting new animation
-    rotationAxis.set(-mouse.y, 0, -mouse.x).normalize();
+    coin.rotation.set(0, 0, 0); // Reset rotation before starting new animation
+    setRotationAxis(mouse.x, mouse.y, mouse.z);
   }
 }
 
@@ -95,7 +127,7 @@ function onMouseUp(event) {
   raycaster.setFromCamera(mouse, camera);
   console.log(mouse.x, mouse.y);
   // Check for intersections with the coin
-  rotationAxis.set(-mouse.y, 0, -mouse.x).normalize();
+  setRotationAxis(mouse.x, mouse.y, mouse.z);
 
   const targetQuaternion = coin.quaternion
     .clone()
@@ -105,10 +137,7 @@ function onMouseUp(event) {
   console.log(targetQuaternion.w);
 
   gsap.to(coin.quaternion, {
-    x: Math.PI / 2,
-    y: 0,
-    z: 0,
-    w: Math.PI / 2,
+    ...basePosition,
     duration: duration,
     onUpdate: () => {
       coin.quaternion.normalize();
@@ -125,7 +154,7 @@ function onMouseDown(event) {
   raycaster.setFromCamera(mouse, camera);
   console.log(mouse.x, mouse.y);
   // Check for intersections with the coin
-  rotationAxis.set(-mouse.y, 0, -mouse.x).normalize();
+  setRotationAxis(mouse.x, mouse.y, mouse.z);
   const targetQuaternion = coin.quaternion
     .clone()
     .multiply(
@@ -149,7 +178,7 @@ function onMouseDown(event) {
   });
 
   const rand = Math.random();
-  if (rand < 0.05) onMouseClick(event);
+  if (rand < 0.1) onMouseClick(event);
 }
 
 function onTouchStart(event) {
@@ -163,7 +192,7 @@ function onTouchStart(event) {
   }
   raycaster.setFromCamera(mouse, camera);
 
-  rotationAxis.set(-mouse.y, 0, -mouse.x).normalize();
+  setRotationAxis(mouse.x, mouse.y, mouse.z);
   const targetQuaternion = coin.quaternion
     .clone()
     .multiply(
@@ -186,12 +215,12 @@ function onTouchStart(event) {
     },
   });
   const rand = Math.random();
-  if (rand < 0.05) onMouseClick(event);
+  if (rand < 0.01) onMouseClick(event);
 }
 
 function onTouchEnd(event) {
   event.preventDefault();
-  console.log('touchend', event, event.touches)
+  console.log('touchend', event, event.touches);
   if (event.touches.length) {
     mouse.x = (event.touches[0].clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.touches[0].clientY / window.innerHeight) * 2 + 1;
@@ -201,7 +230,7 @@ function onTouchEnd(event) {
   }
   raycaster.setFromCamera(mouse, camera);
 
-  rotationAxis.set(-mouse.y, 0, -mouse.x).normalize();
+  setRotationAxis(mouse.x, mouse.y, mouse.z);
   const targetQuaternion = coin.quaternion
     .clone()
     .multiply(
@@ -210,10 +239,7 @@ function onTouchEnd(event) {
   console.log(targetQuaternion.w);
 
   gsap.to(coin.quaternion, {
-    x: Math.PI / 2,
-    y: 0,
-    z: 0,
-    w: Math.PI / 2,
+    ...basePosition,
     duration: duration,
     onUpdate: () => {
       coin.quaternion.normalize();
@@ -247,7 +273,7 @@ function animate() {
 
     if (animationTime >= animationDuration) {
       isAnimating = false;
-      coin.rotation.set(Math.PI / 2, 0, 0); // Reset to start position
+      coin.rotation.set(basePosition.x, 0, 0); // Reset to start position
     }
 
     animationTime += 16.67; // Increment time by approx. one frame duration
