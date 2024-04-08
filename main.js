@@ -41,11 +41,17 @@ scene.add(ambientLight);
 const textureLoader = new THREE.TextureLoader();
 const coinTexture = textureLoader.load('./p.jpg'); // Ensure you have an image at this path
 const coinMaterial = new THREE.MeshLambertMaterial({ map: coinTexture });
-const imageData = getImageData('/a.png');
+const imageData = await getImageData('/a.png');
 
 const shape = createExtrudeShape(imageData);
 
-const shapeGeometry = new THREE.ExtrudeGeometry(shape)
+const extrudeSettings = {
+  steps: 1,
+  depth: 1, // Small depth for a flat appearance
+  bevelEnabled: false, // No bevel for a sharp-edged look
+};
+
+const shapeGeometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
 const coinGeometry = new THREE.CylinderGeometry(3, 3, 0.5, 20, 20, false);
 const coin = new THREE.Mesh(shapeGeometry, coinMaterial);
 coin.rotation.x = Math.PI / 2;
